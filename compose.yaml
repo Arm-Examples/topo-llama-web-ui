@@ -4,8 +4,8 @@ services:
     build:
       context: ./llama-inference
       args:
-        MODEL: unsloth/SmolLM2-135M-Instruct-GGUF
-        MODEL_ENDPOINT: https://huggingface.co
+        MODEL: ${MODEL:-unsloth/SmolLM2-135M-Instruct-GGUF}
+        MODEL_ENDPOINT: ${MODEL_ENDPOINT:-https://huggingface.co}
     ports:
       - "8080:8080"
     healthcheck:
