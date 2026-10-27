@@ -14,21 +14,31 @@ FILENAME = re.compile(
 
 
 def main():
-    total = int(os.environ["TARGET_MEMORY_KIB"]) * 1024
+    memory = os.getenv("TARGET_MEMORY_KIB")
     context = int(os.environ["CONTEXT_LENGTH"])
-    if total <= 0 or context <= 0:
+    if context <= 0 or (memory and int(memory) <= 0):
         raise ValueError("TARGET_MEMORY_KIB and CONTEXT_LENGTH must be positive")
-    # Reserve RAM for the OS and background processes.
-    budget = total - max(4 * 1024**3, min(int(total * 0.15), 32 * 1024**3))
     repo, endpoint = os.environ["MODEL"], os.environ["MODEL_ENDPOINT"]
     info = HfApi(endpoint=endpoint).model_info(repo)
     candidates = []
     for file in info.siblings or []:
         match = FILENAME.search(file.rfilename)
         if match and "mmproj" not in file.rfilename.lower():
-            candidates.append((QUANTS.index(match[1].upper()), file.rfilename))
-    for _, filename in sorted(candidates):
-        url = hf_hub_url(repo, filename, revision=info.sha, endpoint=endpoint)
+            quant = match[1].upper()
+            url = hf_hub_url(repo, file.rfilename, revision=info.sha, endpoint=endpoint)
+            candidates.append((QUANTS.index(quant), url))
+    candidates.sort()
+    if not memory:
+        for quality, url in candidates:
+            if QUANTS[quality] == "Q4_K_M":
+                print(url)
+                return
+        raise ValueError("Q4_K_M is unavailable")
+
+    total = int(memory) * 1024
+    # Reserve RAM for the OS and background processes.
+    budget = total - max(4 * 1024**3, min(int(total * 0.15), 32 * 1024**3))
+    for _, url in candidates:
         result = subprocess.run([
             "gguf-parser", "--url", url, "--json", "--gpu-layers", "0",
             "--ctx-size", str(context), "--batch-size", "512",
