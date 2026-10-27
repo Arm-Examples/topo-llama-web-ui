@@ -39,5 +39,4 @@ models/*.bin
 
 # Target configuration and selector reports
 .env.topo
-.env.*.topo
 selection/
