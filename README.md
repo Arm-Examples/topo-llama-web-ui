@@ -38,7 +38,7 @@ The Linux Arm backend variants and feature combinations are defined in upstream 
 
 1. **Arm Hardware**: An Arm system (physical or virtual).
 2. **Docker**: For container orchestration with Topo
-3. **Topo**: An experimental build supporting `configure --target` and parameter fact bindings.
+3. **Topo**: With TOPO_EXPERIMENTAL_FEATURES set.
 
 `topo configure --target` supplies target RAM to the build. [gguf-parser](https://github.com/gpustack/gguf-parser-go) estimates CPU memory from remote GGUF metadata, without downloading weights. The selector chooses the highest supported precision estimated to fit, from Q2_K through BF16/F16. Without target memory, selection defaults to Q4_K_M without a memory-fit check.
 

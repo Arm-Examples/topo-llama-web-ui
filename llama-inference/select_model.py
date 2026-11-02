@@ -16,8 +16,10 @@ FILENAME = re.compile(
 def main():
     memory = os.getenv("TARGET_MEMORY_KIB")
     context = int(os.environ["CONTEXT_LENGTH"])
-    if context <= 0 or (memory and int(memory) <= 0):
-        raise ValueError("TARGET_MEMORY_KIB and CONTEXT_LENGTH must be positive")
+    if context <= 0:
+        raise ValueError("CONTEXT_LENGTH must be positive")
+    if memory and int(memory) <= 0:
+        raise ValueError("TARGET_MEMORY_KIB must be positive when provided")
     repo, endpoint = os.environ["MODEL"], os.environ["MODEL_ENDPOINT"]
     info = HfApi(endpoint=endpoint).model_info(repo)
     candidates = []
@@ -38,6 +40,7 @@ def main():
     total = int(memory) * 1024
     # Reserve RAM for the OS and background processes.
     budget = total - max(4 * 1024**3, min(int(total * 0.15), 32 * 1024**3))
+    candidates.sort()
     for _, url in candidates:
         result = subprocess.run([
             "gguf-parser", "--url", url, "--json", "--gpu-layers", "0",
