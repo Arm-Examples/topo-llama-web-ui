@@ -39,7 +39,11 @@ def main():
 
     total = int(memory) * 1024
     # Reserve RAM for the OS and background processes.
-    budget = total - max(4 * 1024**3, min(int(total * 0.15), 32 * 1024**3))
+    minimum_reserve = 4 * 1024**3
+    maximum_reserve = 32 * 1024**3
+    proportional_reserve = int(total * 0.15)
+    reserved_memory = max(minimum_reserve, min(proportional_reserve, maximum_reserve))
+    budget = total - reserved_memory
     candidates.sort()
     for _, url in candidates:
         result = subprocess.run([
