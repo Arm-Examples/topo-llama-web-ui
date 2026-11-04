@@ -8,6 +8,7 @@ set -- \
   --port 8080 \
   --ctx-size "${N_CTX}" \
   --parallel 1 \
+  --cache-ram 0 \
   --threads "${N_THREADS}" \
   --batch-size "${N_BATCH}" \
   --n-gpu-layers "${N_GPU_LAYERS}" \
