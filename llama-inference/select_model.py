@@ -24,6 +24,8 @@ def main():
     info = HfApi(endpoint=endpoint).model_info(repo)
     candidates = []
     for file in info.siblings or []:
+        if os.path.basename(file.rfilename).lower().startswith("mtp-"):
+            continue
         match = FILENAME.search(file.rfilename)
         if match and "mmproj" not in file.rfilename.lower():
             quant = match[1].upper()
