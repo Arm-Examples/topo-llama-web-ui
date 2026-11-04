@@ -36,3 +36,7 @@ models/*.bin
 # Environment
 .env
 .env.local
+
+# Target configuration and selector reports
+.env.topo
+selection/

@@ -4,8 +4,10 @@ services:
     build:
       context: ./llama-inference
       args:
-        MODEL: ${MODEL:-unsloth/SmolLM2-135M-Instruct-GGUF}
+        MODEL: ${MODEL:-bartowski/Qwen_Qwen3-30B-A3B-Instruct-2507-GGUF}
         MODEL_ENDPOINT: ${MODEL_ENDPOINT:-https://huggingface.co}
+        TARGET_MEMORY_KIB: ${TARGET_MEMORY_KIB:-}
+        CONTEXT_LENGTH: ${CONTEXT_LENGTH:-4096}
     ports:
       - "8080:8080"
     healthcheck:
@@ -29,12 +31,11 @@ x-topo:
 
     The stack includes:
     - llama.cpp
-    - Quantized SmolLM2 135M default model loaded through llama.cpp
+    - Qwen3-30B-A3B-Instruct-2507 with target-aware precision selection
     - Built-in web chat interface
     - No GPU required - pure CPU inference
 
-    Perfect for demos and testing! The default SmolLM2-135M-Instruct model
-    gives the project a small ready-to-use model reference by default.
+    Topo supplies target memory; whichllm selects a precision during the build.
 
     Ideal for testing LLM workloads on Arm hardware without GPU dependencies
     while avoiding a source build during Topo Project deployment.
@@ -47,17 +48,22 @@ x-topo:
 
   args: &args
     MODEL:
-      description: |
-        Model artifact reference. Must be one of: 
-        - Hugging Face GGUF repo ID (e.g. `unsloth/SmolLM2-135M-Instruct-GGUF`)
-        - Hugging Face GGUF repo ID with quantization (e.g. `unsloth/SmolLM2-135M-Instruct-GGUF:Q4_K_M`)
-        - URL to GGUF file (e.g. `https://huggingface.co/unsloth/SmolLM2-135M-Instruct-GGUF/resolve/main/SmolLM2-135M-Instruct-Q4_K_M.gguf`)
-      default: "unsloth/SmolLM2-135M-Instruct-GGUF"
+      description: GGUF repository; defaults to Qwen3-30B-A3B-Instruct-2507 (MoE).
+      example: bartowski/Qwen_Qwen3-30B-A3B-Instruct-2507-GGUF
       hints:
         meta.type:
           - huggingface.repo-id
         model.task: text-generation
         model.format: gguf
+    TARGET_MEMORY_KIB:
+      description: Total target memory in KiB; populated by configure --target.
+      source:
+        provider: topo.memory
+        group: system-memory
+        fact: memory.total
+    CONTEXT_LENGTH:
+      description: Context tokens for both memory estimation and inference (default 4096).
+      example: "4096"
     MODEL_ENDPOINT:
       description: "Hugging Face API compatible endpoint for downloading models"
       default: "https://huggingface.co"
